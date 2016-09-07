@@ -1,52 +1,64 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-typedef struct {
+struct simple {
 	int number;
-} simple;
+};
 
-typedef struct {
+struct child {
 	char *name;
-} child;
+};
 
-typedef struct {
+struct parent {
 	char *name;
-	child *child;
-} parent;
+	struct child *child;
+};
 
 
-int simpleFunc(simple *param) {
-	(*param).number = 42;
+int simpleFunc(struct simple *param) {
+	param->number = 42;
 	return 0;
 }
 
-int simplePointerFunc(simple **param) {
-	simple s = {24};
-	*param = &s;
+int simplePointerFunc(struct simple **param) {
+	struct simple *simple = malloc(sizeof(struct simple));
+	simple->number = 24;
+	*param = simple;
 	return 0;
 }
 
-int parentFunc(parent **p) {
-	child c = {"child"};
-	parent p2 = {.name = "parent", .child = &c};
-	*p = &p2;
+int parentFunc(struct parent **p) {
+	struct child *c = malloc(sizeof(struct child));
+	c->name = "child";
+	struct parent *p2 = malloc(sizeof(struct parent));
+	p2->name = "parent";
+	p2->child = c;
+	*p = p2;
 	return 0;
+}
+
+int freeParentFunc(struct parent *p) {
+	free(p->child);
+	free(p);
 }
 
 int main() {
-	simple s = {1};
-	simple *ps;
+	struct simple s = {1};
+	struct simple *ps;
 
 	simpleFunc(&s);
 	printf("simple: %i\n", s.number);
 
 	simplePointerFunc(&ps);
 	printf("simple pointer: %i\n", (*ps).number);
+	free(ps);
 
-	parent *p;
+	struct parent *p;
 	parentFunc(&p);
 	printf("parent: %s\n", (*p).name);
-	printf("parent with child: %s\n", (*(*p).child).name);
-//	printf("parent with child: %s\n", (p->child)->name);
+	printf("parent with child: %s\n", (*p).child->name);
+	printf("parent with child: %s\n", (p->child)->name);
+	freeParentFunc(p);
 //	child *c = (*p).child;
 //	printf("%d", c);
 //	char *name = (*(*p).child).name;
